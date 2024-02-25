@@ -1,12 +1,15 @@
-const { Client, Pool } = require('pg');
+const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: 'admin',
-  host: 'localhost',
-  database: 'postgres',
-  password: '123',
-  port: 5432,
-})
+  connectionString: process.env.DB_URL,
+});
+
+async function getAllClientes() {
+  const query = 'SELECT * FROM clientes';
+  const result = await pool.query(query);
+  return result;
+}
+
 async function findClientById(clienteId) {
   const client = await pool.connect()
   const res = await client.query(`SELECT id,limite,saldo FROM clientes WHERE id = ${clienteId}`)
@@ -18,10 +21,12 @@ async function findTransactionByClientId(clienteId){
   const client = await pool.connect()
   const res = await client.query(`SELECT valor,tipo,descricao,realizada_em FROM transacoes WHERE id_cliente = ${clienteId}`)
   client.release()
+  client.end();
   return res.rows
 }
 
 module.exports = {
+  getAllClientes,
   findClientById,
   findTransactionByClientId
 };

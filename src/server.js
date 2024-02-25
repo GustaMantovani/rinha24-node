@@ -1,9 +1,7 @@
-const { Client, Pool } = require('pg');
+const port = process.env.PORT || 3000;
 const express = require('express')
 const app = express()
-const port = 3000;
-const { findClientById, findTransactionByClientId } = require('./db.js');
-const pool = new Pool;
+const { getAllClientes, findClientById, findTransactionByClientId } = require('./db.js');
 
 //Funções
 async function realizar_transacao(json_transacao,id_cliente_url){
@@ -17,12 +15,6 @@ async function consultar_extrato(id_cliente_url){
     return { cliente, transacoes };
   }
   return null;
-}
-
-async function getAllClientes() {
-  const query = 'SELECT * FROM clientes';
-  const result = await pool.query(query);
-  return result;
 }
 
 //Routing
