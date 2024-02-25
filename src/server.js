@@ -3,13 +3,7 @@ const express = require('express')
 const app = express()
 const port = 3000;
 const { findClientById, findTransactionByClientId } = require('./db.js');
-const pool = new Pool({
-  user: 'admin',
-  host: 'localhost',
-  database: 'postgres',
-  password: '123',
-  port: 5432,
-})
+const pool = new Pool;
 
 //Funções
 async function realizar_transacao(json_transacao,id_cliente_url){

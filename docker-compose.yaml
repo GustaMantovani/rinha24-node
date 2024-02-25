@@ -8,11 +8,11 @@ services:
       context: .
     hostname: api01
     environment:
-      - DB_HOSTNAME=db
-      - POSTGRES_PASSWORD=123
-      - POSTGRES_USER=admin
-      - POSTGRES_DB=rinha
-    
+      - PGHOST=db
+      - PGUSER=admin
+      - PGDATABASE=rinha
+      - PGPASSWORD=123
+      - PGPORT=5432
     # Não é necessário expor qualquer porta além da porta do load balancer,
     # mas é comum as pessoas o fazerem para testarem suas APIs e conectarem
     # ao banco de dados na fase de desenvolvimento.
@@ -31,10 +31,11 @@ services:
     <<: *api 
     hostname: api02
     environment:
-      - DB_HOSTNAME=db
-      - POSTGRES_PASSWORD=123
-      - POSTGRES_USER=admin
-      - POSTGRES_DB=rinha
+      - PGHOST=db
+      - PGUSER=admin
+      - PGDATABASE=rinha
+      - PGPASSWORD=123
+      - PGPORT=5432
     ports:
       - "3002:3000"
  
