@@ -30,7 +30,17 @@ app.post('/clientes/:id_cliente_url/transacoes', (req,res) => {
 app.get('/clientes/:id_cliente_url/extrato', async (req, res) => {
   const extrato = await consultar_extrato(req.params.id_cliente_url);
   if (extrato) {
-    res.json(extrato);
+
+    const jsonRes = {
+      "saldo": {
+        "total": extrato.cliente[0].saldo, 
+        "data_extrato": new Date().toISOString(), 
+        "limite": extrato.cliente[0].limite
+      },
+      "ultimas_transacoes": extrato.transacoes
+    };
+    
+    res.json(jsonRes);
   } else {
     res.status(404).json({ error: 'Cliente não encontrado' });
   }

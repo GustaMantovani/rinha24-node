@@ -21,7 +21,6 @@ async function findTransactionByClientId(clienteId){
   const client = await pool.connect()
   const res = await client.query(`SELECT valor,tipo,descricao,realizada_em FROM transacoes WHERE id_cliente = ${clienteId}`)
   client.release()
-  client.end();
   return res.rows
 }
 
