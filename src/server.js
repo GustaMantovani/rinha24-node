@@ -13,6 +13,7 @@ const pool = new Pool({
 
 //Funções
 async function realizar_transacao(json_transacao,id_cliente_url){
+  
 }
 
 async function consultar_extrato(id_cliente_url){

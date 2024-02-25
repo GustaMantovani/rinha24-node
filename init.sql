@@ -11,7 +11,7 @@ CREATE TABLE transacoes (
   valor INTEGER NOT NULL,
   tipo CHAR(1) NOT NULL,
   descricao TEXT,
-  realizada_em VARCHAR(28) NOT NULL,
+  realizada_em TIMESTAMP WITH TIME ZONE NOT NULL,
 
   CONSTRAINT clientes FOREIGN KEY (id_cliente) REFERENCES clientes(id)
 );
