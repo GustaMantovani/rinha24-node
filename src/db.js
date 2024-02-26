@@ -24,8 +24,36 @@ async function findTransactionByClientId(clienteId){
   return res.rows
 }
 
+async function insertTransaction(id_cliente, valor, tipo, descricao, realizada_em) {
+  const client = await pool.connect(); 
+  const query = `
+      INSERT INTO transacoes (id_cliente, valor, tipo, descricao, realizada_em)
+      VALUES ($1, $2, $3, $4, $5)
+  `;
+  const values = [id_cliente, valor, tipo, descricao, realizada_em];
+
+  await client.query(query, values); 
+  client.release(); 
+}
+
+User
+async function updateClientBalance(id_cliente, novoSaldo) {
+  const client = await pool.connect();
+  const query = `
+      FOR UPDATE clientes
+      SET saldo = $1
+      WHERE id = $2
+  `;
+  const values = [novoSaldo, id_cliente];
+  await client.query(query, values);
+  client.release();
+}
+
+
 module.exports = {
   getAllClientes,
   findClientById,
-  findTransactionByClientId
+  findTransactionByClientId,
+  insertTransaction,
+  updateClientBalance
 };
