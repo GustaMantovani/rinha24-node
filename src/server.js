@@ -5,7 +5,7 @@ const { getAllClientes, findClientById, findTransactionByClientId, updateClientB
 
 //Funções
 async function realizar_transacao(json_transacao, id_cliente_url) {
-  if (id_cliente_url >= 0 && id_cliente_url<6) { // a segunda condição do && é uma gambiarra do caralho, mas aumenta o desempenho no caso desse teste em específico
+  if (id_cliente_url >= 0) { // a segunda condição do && é uma gambiarra do caralho, mas aumenta o desempenho no caso desse teste em específico
 
     const cliente = await findClientById(id_cliente_url);
 
@@ -56,7 +56,7 @@ async function realizar_transacao(json_transacao, id_cliente_url) {
 
 
 async function consultar_extrato(id_cliente_url){
-  if(id_cliente_url => 0 && id_cliente_url < 6){ //NÃO FAÇA ISSO
+  if(id_cliente_url => 0){ //NÃO FAÇA ISSO
     const cliente = await findClientById(id_cliente_url);
     if (cliente) {
       const transacoes = await findTransactionByClientId(id_cliente_url);
