@@ -39,7 +39,7 @@ async function insertTransaction(id_cliente, valor, tipo, descricao, realizada_e
 async function updateClientBalance(id_cliente, novoSaldo) {
   const client = await pool.connect();
   const query = `
-      FOR UPDATE clientes
+      UPDATE clientes
       SET saldo = $1
       WHERE id = $2
   `;
