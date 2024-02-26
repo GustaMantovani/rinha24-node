@@ -7,6 +7,7 @@ async function findClientById(connection,clienteId) {
 
 async function findTransactionByClientId(connection,clienteId){
     const res = await connection.query(`SELECT valor,tipo,descricao,realizada_em FROM transacoes WHERE id_cliente = ${clienteId}`)
+    return res;
 }
 
 async function insertTransaction(connection,id_cliente, valor, tipo, descricao, realizada_em) {

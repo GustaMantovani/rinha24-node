@@ -5,7 +5,7 @@ const { findClientById, findTransactionByClientId, updateClientBalance, insertTr
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  connectionString: process.env.DB_URL,
+  connectionString: "postgres://admin:123@localhost/rinha",
 });
 
 //Funções
@@ -14,11 +14,11 @@ async function realizar_transacao(json_transacao, id_cliente_url) {
     const connection = await pool.connect()
     const cliente = await findClientById(connection, id_cliente_url);
 
-    if (cliente.rowCount > 0) {
+    if (cliente.rows.length > 0) {
 
       // Dados atuais do cliente
-      let saldoAtual = cliente[0].saldo;
-      const limite = cliente[0].limite;
+      let saldoAtual = cliente.rows[0].saldo;
+      const limite = cliente.rows[0].limite;
 
       if(json_transacao.valor != null && json_transacao.descricao != null && json_transacao.tipo != null){
 
@@ -62,17 +62,18 @@ async function realizar_transacao(json_transacao, id_cliente_url) {
 }
 
 async function consultar_extrato(id_cliente_url){
-  if(id_cliente_url => 0){ //NÃO FAÇA ISSO
+  if(id_cliente_url => 0){
     const connection = await pool.connect()
     const cliente = await findClientById(connection,id_cliente_url);
-    if (cliente.rowCount > 0) {
+
+    if (cliente.rows && cliente.rows.length > 0) {
       const transacoes = await findTransactionByClientId(connection, id_cliente_url);
       connection.release();
-      return { cliente, transacoes };
+      return { clientes: cliente.rows, transacoes: transacoes.rows };
     }
     connection.release();
   }
-  return 404;
+  return null;
 }
 
 //Routing
@@ -93,14 +94,14 @@ app.post('/clientes/:id_cliente_url/transacoes', async (req,res) => {
 //Extrato
 app.get('/clientes/:id_cliente_url/extrato', async (req, res) => {
   const extrato = await consultar_extrato(req.params.id_cliente_url);
-  if (extrato != 404) {
+  if (extrato) {
     const jsonRes = {
       "saldo": {
-        "total": extrato.cliente[0].saldo, 
+        "total": extrato.clientes[0].saldo, 
         "data_extrato": new Date().toISOString(), 
-        "limite": extrato.cliente[0].limite
+        "limite": extrato.clientes[0].limite
       },
-      "ultimas_transacoes": extrato.transacoes
+      "ultimas_transacoes": extrato.transacoes || []
     };
     res.json(jsonRes);
   } else {
@@ -108,12 +109,6 @@ app.get('/clientes/:id_cliente_url/extrato', async (req, res) => {
   }
 });
 
-
-app.get('/banco', (req, res) => {
-  getAllClientes().then((dadosClientes)=> {
-    res.json(dadosClientes.rows)
-  })
-})
 
 // Rota padrão para lidar com URLs não encontrados
 app.use((req, res) => {
