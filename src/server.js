@@ -5,7 +5,7 @@ const { findClientById, findTransactionByClientId, updateClientBalance, insertTr
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  connectionString: "postgres://admin:123@localhost/rinha",
+  connectionString: process.env.DB_URL,
 });
 
 //Funções
@@ -13,7 +13,6 @@ async function realizar_transacao(json_transacao, id_cliente_url) {
   if (id_cliente_url >= 0) { // a segunda condição do && é uma gambiarra do caralho, mas aumenta o desempenho no caso desse teste em específico
     const connection = await pool.connect()
     const cliente = await findClientById(connection, id_cliente_url);
-
     if (cliente.rows.length > 0) {
 
       // Dados atuais do cliente
@@ -23,11 +22,11 @@ async function realizar_transacao(json_transacao, id_cliente_url) {
       if(json_transacao.valor != null && json_transacao.descricao != null && json_transacao.tipo != null){
 
         // Dados do JSON de transação
-        const valorTransacao = parseInt(json_transacao.valor);
+        const valorTransacao = json_transacao.valor;
         const descTransacao = json_transacao.descricao;
         const tipoTransacao = json_transacao.tipo;
 
-        if (descTransacao.length <= 10 && descTransacao.length > 0 && valorTransacao > 0){
+        if (descTransacao.length <= 10 && descTransacao.length > 0 && valorTransacao != 0){
 
           if (tipoTransacao === 'c') {
 
@@ -73,7 +72,7 @@ async function consultar_extrato(id_cliente_url){
     }
     connection.release();
   }
-  return null;
+  return 404;
 }
 
 //Routing
@@ -82,9 +81,9 @@ async function consultar_extrato(id_cliente_url){
 app.use(express.json());
 app.post('/clientes/:id_cliente_url/transacoes', async (req,res) => {
   const res_transacao = await realizar_transacao(req.body,req.params.id_cliente_url);
-  if(res_transacao[0] == 422){
+  if(res_transacao == 422){
     res.status(422).send('KKK');
-  }else if(res_transacao[0] == 404){
+  }else if(res_transacao == 404){
     res.status(404).send('Not Found');
   }else{
     res.json(res_transacao);
@@ -94,7 +93,7 @@ app.post('/clientes/:id_cliente_url/transacoes', async (req,res) => {
 //Extrato
 app.get('/clientes/:id_cliente_url/extrato', async (req, res) => {
   const extrato = await consultar_extrato(req.params.id_cliente_url);
-  if (extrato) {
+  if (extrato!=404) {
     const jsonRes = {
       "saldo": {
         "total": extrato.clientes[0].saldo, 
