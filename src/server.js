@@ -19,7 +19,7 @@ async function realizar_transacao(json_transacao, id_cliente_url) {
       let saldoAtual = cliente.rows[0].saldo;
       const limite = cliente.rows[0].limite;
 
-      if(json_transacao.valor != null && json_transacao.descricao != null && json_transacao.tipo != null){
+      if(json_transacao.valor != null && json_transacao.descricao != null && json_transacao.tipo != null && json_transacao.valor%1 === 0){
 
         // Dados do JSON de transação
         const valorTransacao = json_transacao.valor;
@@ -52,6 +52,7 @@ async function realizar_transacao(json_transacao, id_cliente_url) {
           }
         }
       }
+      connection.release();
       return 422;
     }
     connection.release();
