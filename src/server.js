@@ -1,15 +1,20 @@
 const port = process.env.PORT || 3000;
 const express = require('express')
 const app = express()
-const { getAllClientes, findClientById, findTransactionByClientId, updateClientBalance, insertTransaction } = require('./db.js');
+const { findClientById, findTransactionByClientId, updateClientBalance, insertTransaction } = require('./db.js');
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DB_URL,
+});
 
 //Funções
 async function realizar_transacao(json_transacao, id_cliente_url) {
   if (id_cliente_url >= 0) { // a segunda condição do && é uma gambiarra do caralho, mas aumenta o desempenho no caso desse teste em específico
+    const connection = await pool.connect()
+    const cliente = await findClientById(connection, id_cliente_url);
 
-    const cliente = await findClientById(id_cliente_url);
-
-    if (cliente) {
+    if (cliente.rowCount > 0) {
 
       // Dados atuais do cliente
       let saldoAtual = cliente[0].saldo;
@@ -28,8 +33,9 @@ async function realizar_transacao(json_transacao, id_cliente_url) {
 
             saldoAtual += valorTransacao;
 
-            await insertTransaction(id_cliente_url, valorTransacao, tipoTransacao, descTransacao, new Date().toISOString());
-            await updateClientBalance(id_cliente_url, saldoAtual);
+            await insertTransaction(connection,id_cliente_url, valorTransacao, tipoTransacao, descTransacao, new Date().toISOString());
+            await updateClientBalance(connection, id_cliente_url, saldoAtual);
+            connection.release();
             return { "limite": limite, "saldo": saldoAtual };
 
           } else if (tipoTransacao === 'd') {
@@ -38,8 +44,9 @@ async function realizar_transacao(json_transacao, id_cliente_url) {
 
               saldoAtual += valorTransacao;
 
-              await insertTransaction(id_cliente_url, valorTransacao, tipoTransacao, descTransacao, new Date().toISOString());
-              await updateClientBalance(id_cliente_url, saldoAtual);
+              await insertTransaction(connection, id_cliente_url, valorTransacao, tipoTransacao, descTransacao, new Date().toISOString());
+              await updateClientBalance(connection, id_cliente_url, saldoAtual);
+              connection.release();
               return { "limite": limite, "saldo": saldoAtual };
 
             }
@@ -48,22 +55,24 @@ async function realizar_transacao(json_transacao, id_cliente_url) {
       }
       return 422;
     }
+    connection.release();
   }else {
     return 404;
   }
 }
 
-
-
 async function consultar_extrato(id_cliente_url){
   if(id_cliente_url => 0){ //NÃO FAÇA ISSO
-    const cliente = await findClientById(id_cliente_url);
-    if (cliente) {
-      const transacoes = await findTransactionByClientId(id_cliente_url);
+    const connection = await pool.connect()
+    const cliente = await findClientById(connection,id_cliente_url);
+    if (cliente.rowCount > 0) {
+      const transacoes = await findTransactionByClientId(connection, id_cliente_url);
+      connection.release();
       return { cliente, transacoes };
     }
+    connection.release();
   }
-  return;
+  return 404;
 }
 
 //Routing
@@ -84,7 +93,7 @@ app.post('/clientes/:id_cliente_url/transacoes', async (req,res) => {
 //Extrato
 app.get('/clientes/:id_cliente_url/extrato', async (req, res) => {
   const extrato = await consultar_extrato(req.params.id_cliente_url);
-  if (extrato && extrato.cliente && extrato.cliente.length > 0) {
+  if (extrato != 404) {
     const jsonRes = {
       "saldo": {
         "total": extrato.cliente[0].saldo, 
