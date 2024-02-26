@@ -36,7 +36,6 @@ async function insertTransaction(id_cliente, valor, tipo, descricao, realizada_e
   client.release(); 
 }
 
-User
 async function updateClientBalance(id_cliente, novoSaldo) {
   const client = await pool.connect();
   const query = `
