@@ -10,7 +10,7 @@ const pool = new Pool({
 
 //Funções
 async function realizar_transacao(json_transacao, id_cliente_url) {
-  if (id_cliente_url >= 0) { // a segunda condição do && é uma gambiarra do caralho, mas aumenta o desempenho no caso desse teste em específico
+  if (id_cliente_url >= 0) {
     const connection = await pool.connect()
     const cliente = await findClientById(connection, id_cliente_url);
     if (cliente.rows.length > 0) {
@@ -56,9 +56,8 @@ async function realizar_transacao(json_transacao, id_cliente_url) {
       return 422;
     }
     connection.release();
-  }else {
-    return 404;
   }
+  return 404;
 }
 
 async function consultar_extrato(id_cliente_url){
@@ -111,7 +110,7 @@ app.get('/clientes/:id_cliente_url/extrato', async (req, res) => {
 
 
 // Rota padrão para lidar com URLs não encontrados
-app.use((req, res) => {
+app.use((res) => {
   res.status(404).send('Not Found');
 });
 
